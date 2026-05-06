@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>周报侠 WeeklyHero - AI智能周报助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111113;
+            --bg-tertiary: #1a1a1d;
+            --bg-card: #141416;
+            --border-color: #2a2a2e;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a8;
+            --text-muted: #6b6b75;
+            --accent-start: #8b5cf6;
+            --accent-end: #6366f1;
+            --accent-gradient: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent-gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-left: 0.5rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .quota-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+
+        .quota-badge.pro {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.2));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .quota-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .upgrade-btn {
+            padding: 0.5rem 1.25rem;
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        /* 主容器 */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 英雄区域 */
+        .hero {
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 工作区 */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title-icon {
+            font-size: 1.25rem;
+        }
+
+        /* 输入区域 */
+        .input-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .work-points-textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.9375rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .work-points-textarea:focus {
+            outline: none;
+            border-color: var(--accent-start);
+        }
+
+        .work-points-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .textarea-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* 选择器 */
+        .selectors {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .selector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .selector-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .selector-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .selector-btn:hover {
+            border-color: var(--accent-start);
+            color: var(--text-primary);
+        }
+
+        .selector-btn.active {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.2));
+            border-color: var(--accent-start);
+            color: var(--text-primary);
+        }
+
+        /* 复选框 */
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .checkbox-label input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-start);
+        }
+
+        /* API Key输入 */
+        .api-key-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+        }
+
+        .api-key-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: var(--accent-start);
+        }
+
+        .api-key-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* 生成按钮 */
+        .generate-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .generate-btn .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 输出区域 */
+        .output-area {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-content {
+            flex: 1;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            font-size: 0.9375rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .output-placeholder {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .output-placeholder-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .output-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn:hover {
+            border-color: var(--accent-start);
+            color: var(--text-primary);
+        }
+
+        .action-btn.primary {
+            background: var(--accent-gradient);
+            border: none;
+            color: white;
+        }
+
+        /* Toast通知 */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        .toast.error {
+            border-color: var(--error);
+        }
+
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-features {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-feature {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            color: var(--text-secondary);
+        }
+
+        .modal-feature-icon {
+            color: var(--success);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-cancel {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .modal-confirm {
+            background: var(--accent-gradient);
+            border: none;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* 上周周报输入 */
+        .previous-report-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .toggle-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-section:hover {
+            background: var(--bg-secondary);
+        }
+
+        .toggle-section-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .toggle-arrow {
+            transition: transform 0.2s;
+        }
+
+        .toggle-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .toggle-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s;
+        }
+
+        .toggle-content.open {
+            max-height: 300px;
+        }
+
+        .toggle-content-inner {
+            padding: 1rem;
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 3rem;
+        }
+
+        .footer a {
+            color: var(--accent-start);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .logo-sub {
+                display: none;
+            }
+
+            .main-container {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 2rem 0;
+            }
+
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+
+            .selectors {
+                grid-template-columns: 1fr;
+            }
+
+            .output-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📝</div>
+                <span class="logo-text">周报侠</span>
+                <span class="logo-sub">WeeklyHero</span>
+            </div>
+            <div class="header-actions">
+                <div class="quota-badge" id="quotaBadge">
+                    <span class="quota-dot"></span>
+                    <span id="quotaText">3次免费</span>
+                </div>
+                <button class="upgrade-btn" onclick="showUpgradeModal()">升级Pro</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主容器 -->
+    <main class="main-container">
+        <!-- 英雄区域 -->
+        <section class="hero">
+            <h1>输入关键词，<span>30秒</span>生成漂亮周报</h1>
+            <p>告别加班写周报！AI智能周报助手，支持多种风格，让你的工作总结既专业又高效。</p>
+        </section>
+
+        <!-- 工作区 -->
+        <div class="workspace">
+            <!-- 输入区域 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="card-title-icon">✏️</span>
+                        输入工作要点
+                    </div>
+                </div>
+
+                <!-- 工作要点输入 -->
+                <div class="input-section">
+                    <label class="input-label">本周完成的工作（每行一条）</label>
+                    <textarea 
+                        id="workPoints" 
+                        class="work-points-textarea"
+                        placeholder="例如：
+完成用户登录模块开发
+修复了3个线上bug
+参与产品需求评审
+和UI设计师对接了首页改版方案"
+                    ></textarea>
+                    <div class="textarea-hint">💡 每行输入一个工作事项，AI会帮你整理成专业周报</div>
+                </div>
+
+                <!-- 报告类型选择 -->
+                <div class="selectors">
+                    <div class="selector-group">
+                        <div class="selector-label">报告类型</div>
+                        <div class="selector" id="reportTypeSelector">
+                            <button class="selector-btn" data-value="daily">日报</button>
+                            <button class="selector-btn active" data-value="weekly">周报</button>
+                            <button class="selector-btn" data-value="monthly">月报</button>
+                        </div>
+                    </div>
+                    <div class="selector-group">
+                        <div class="selector-label">写作风格</div>
+                        <div class="selector" id="styleSelector">
+                            <button class="selector-btn active" data-value="concise">简洁务实</button>
+                            <button class="selector-btn" data-value="data_driven">数据驱动</button>
+                            <button class="selector-btn" data-value="executive">向上汇报</button>
+                            <button class="selector-btn" data-value="achievement">自我包装</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 选项 -->
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="autoExpand">
+                        <span>自动补全（给关键词，AI帮你扩充）</span>
+                    </label>
+                </div>
+
+                <!-- 高级选项折叠 -->
+                <div class="previous-report-section">
+                    <div class="toggle-section" onclick="toggleAdvanced()">
+                        <div class="toggle-section-label">
+                            <span>⚡</span>
+                            <span>高级选项</span>
+                        </div>
+                        <span class="toggle-arrow" id="toggleArrow">▼</span>
+                    </div>
+                    <div class="toggle-content" id="toggleContent">
+                        <div class="toggle-content-inner">
+                            <!-- 上周周报 -->
+                            <div class="input-section">
+                                <label class="input-label">上周周报（自动衔接）</label>
+                                <textarea 
+                                    id="previousReport" 
+                                    class="work-points-textarea"
+                                    style="min-height: 100px;"
+                                    placeholder="粘贴上周周报内容，AI会自动衔接..."
+                                ></textarea>
+                            </div>
+                            
+                            <!-- 下周计划 -->
+                            <div class="input-section" style="margin-bottom: 0;">
+                                <label class="input-label">下周计划要点</label>
+                                <textarea 
+                                    id="nextWeekPlan" 
+                                    class="work-points-textarea"
+                                    style="min-height: 80px;"
+                                    placeholder="输入下周计划要点（每行一条）"
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BYOK API Key -->
+                <div class="api-key-section">
+                    <div class="api-key-toggle" onclick="toggleApiKey()">
+                        <span>🔑</span>
+                        <span>使用自己的API Key（BYOK模式，更稳定）</span>
+                        <span class="toggle-arrow" id="apiKeyArrow">▼</span>
+                    </div>
+                    <div class="toggle-content" id="apiKeyContent">
+                        <input 
+                            type="password" 
+                            id="apiKey" 
+                            class="api-key-input"
+                            placeholder="输入你的 DeepSeek API Key"
+                        >
+                        <div class="api-key-hint">
+                            💡 使用自己的API Key不受免费次数限制，推荐高频用户使用。
+                            <a href="https://platform.deepseek.com/api_keys" target="_blank">获取API Key →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 生成按钮 -->
+                <button class="generate-btn" id="generateBtn" onclick="generateReport()">
+                    <span>🚀</span>
+                    <span id="generateBtnText">生成周报</span>
+                </button>
+            </div>
+
+            <!-- 输出区域 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="card-title-icon">✨</span>
+                        生成结果
+                    </div>
+                </div>
+
+                <div class="output-area">
+                    <div id="outputContent" class="output-content">
+                        <div class="output-placeholder">
+                            <div class="output-placeholder-icon">📄</div>
+                            <p>你的周报将在这里生成<br>输入工作要点，点击上方按钮开始</p>
+                        </div>
+                    </div>
+
+                    <div class="output-actions" id="outputActions" style="display: none;">
+                        <button class="action-btn primary" onclick="copyToClipboard()">
+                            <span>📋</span>
+                            <span>复制</span>
+                        </button>
+                        <button class="action-btn" onclick="downloadMarkdown()">
+                            <span>📥</span>
+                            <span>下载MD</span>
+                        </button>
+                        <button class="action-btn" onclick="downloadText()">
+                            <span>📄</span>
+                            <span>下载TXT</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <p>周报侠 WeeklyHero © 2024 | <a href="/docs">API文档</a> | 让工作汇报更轻松</p>
+    </footer>
+
+    <!-- Toast通知 -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 升级模态框 -->
+    <div class="modal-overlay" id="upgradeModal">
+        <div class="modal">
+            <h3>🚀 升级周报侠Pro</h3>
+            <div class="modal-price">¥29<span style="font-size: 1rem">/月</span></div>
+            <p>无限次使用，让周报从此无忧</p>
+            <div class="modal-features">
+                <div class="modal-feature">
+                    <span class="modal-feature-icon">✓</span>
+                    <span>无限次生成周报/日报/月报</span>
+                </div>
+                <div class="modal-feature">
+                    <span class="modal-feature-icon">✓</span>
+                    <span>所有写作风格随意切换</span>
+                </div>
+                <div class="modal-feature">
+                    <span class="modal-feature-icon">✓</span>
+                    <span>优先使用最新AI模型</span>
+                </div>
+                <div class="modal-feature">
+                    <span class="modal-feature-icon">✓</span>
+                    <span>支持上周周报自动衔接</span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-cancel" onclick="closeUpgradeModal()">稍后再说</button>
+                <button class="modal-confirm" onclick="simulatePayment()">立即开通</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ 状态管理 ============
+        let state = {
+            userId: null,
+            isPro: false,
+            remainingFree: 3,
+            currentReport: null,
+            reportType: 'weekly',
+            style: 'concise'
+        };
+
+        // ============ 初始化 ============
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 初始化用户
+            await initUser();
+            
+            // 初始化选择器
+            initSelectors();
+        });
+
+        async function initUser() {
+            // 尝试从localStorage获取userId
+            let userId = localStorage.getItem('weeklyhero_user_id');
+            
+            if (!userId) {
+                // 创建新用户
+                try {
+                    const response = await fetch('/api/user/init', { method: 'POST' });
+                    const data = await response.json();
+                    userId = data.user_id;
+                    localStorage.setItem('weeklyhero_user_id', userId);
+                } catch (e) {
+                    console.error('初始化用户失败:', e);
+                }
+            }
+            
+            state.userId = userId;
+            
+            // 获取用户状态
+            await refreshUserStatus();
+        }
+
+        async function refreshUserStatus() {
+            if (!state.userId) return;
+            
+            try {
+                const response = await fetch(`/api/user/status`, {
+                    headers: { 'X-User-ID': state.userId }
+                });
+                const data = await response.json();
+                
+                state.isPro = data.is_pro;
+                state.remainingFree = data.remaining_free;
+                
+                updateQuotaBadge();
+            } catch (e) {
+                console.error('获取用户状态失败:', e);
+            }
+        }
+
+        function updateQuotaBadge() {
+            const badge = document.getElementById('quotaBadge');
+            const text = document.getElementById('quotaText');
+            
+            if (state.isPro) {
+                badge.classList.add('pro');
+                text.textContent = 'Pro会员 ♾️';
+            } else {
+                badge.classList.remove('pro');
+                text.textContent = `${state.remainingFree}次免费`;
+            }
+        }
+
+        // ============ 选择器 ============
+        function initSelectors() {
+            // 报告类型选择器
+            document.querySelectorAll('#reportTypeSelector .selector-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#reportTypeSelector .selector-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.reportType = btn.dataset.value;
+                });
+            });
+            
+            // 风格选择器
+            document.querySelectorAll('#styleSelector .selector-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#styleSelector .selector-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.style = btn.dataset.value;
+                });
+            });
+        }
+
+        // ============ 折叠面板 ============
+        function toggleAdvanced() {
+            const content = document.getElementById('toggleContent');
+            const arrow = document.getElementById('toggleArrow');
+            content.classList.toggle('open');
+            arrow.classList.toggle('open');
+        }
+
+        function toggleApiKey() {
+            const content = document.getElementById('apiKeyContent');
+            const arrow = document.getElementById('apiKeyArrow');
+            if (content.style.display === 'block') {
+                content.style.display = 'none';
+                arrow.classList.remove('open');
+            } else {
+                content.style.display = 'block';
+                arrow.classList.add('open');
+            }
+        }
+
+        // ============ 生成周报 ============
+        async function generateReport() {
+            const workPoints = document.getElementById('workPoints').value.trim();
+            
+            if (!workPoints) {
+                showToast('请输入工作要点', 'error');
+                return;
+            }
+            
+            // 解析工作要点
+            const points = workPoints.split('\n').filter(p => p.trim());
+            if (points.length === 0) {
+                showToast('请输入至少一条工作要点', 'error');
+                return;
+            }
+            
+            // 检查配额（如果没有使用自己的API Key）
+            const apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey && !state.isPro && state.remainingFree <= 0) {
+                showToast('免费次数已用完，请升级Pro或使用自己的API Key', 'error');
+                showUpgradeModal();
+                return;
+            }
+            
+            // 显示加载状态
+            const btn = document.getElementById('generateBtn');
+            const btnText = document.getElementById('generateBtnText');
+            btn.disabled = true;
+            btnText.innerHTML = '<div class="spinner"></div> 生成中...';
+            
+            try {
+                const requestData = {
+                    work_points: points,
+                    report_type: state.reportType,
+                    style: state.style,
+                    auto_expand: document.getElementById('autoExpand').checked
+                };
+                
+                // 添加可选参数
+                const previousReport = document.getElementById('previousReport').value.trim();
+                if (previousReport) {
+                    requestData.previous_report = previousReport;
+                }
+                
+                const nextWeekPlan = document.getElementById('nextWeekPlan').value.trim();
+                if (nextWeekPlan) {
+                    requestData.next_week_plan = nextWeekPlan.split('\n').filter(p => p.trim());
+                }
+                
+                if (apiKey) {
+                    requestData.user_api_key = apiKey;
+                }
+                
+                const response = await fetch('/api/report/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-ID': state.userId
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    state.currentReport = data.report;
+                    document.getElementById('outputContent').textContent = data.report;
+                    document.getElementById('outputActions').style.display = 'flex';
+                    
+                    // 更新剩余次数
+                    if (data.remaining_free !== undefined) {
+                        state.remainingFree = data.remaining_free;
+                        updateQuotaBadge();
+                    }
+                    
+                    showToast('周报生成成功！', 'success');
+                } else {
+                    if (response.status === 403) {
+                        showToast('免费次数已用完，请升级Pro', 'error');
+                        showUpgradeModal();
+                    } else {
+                        showToast(data.detail?.message || '生成失败，请重试', 'error');
+                    }
+                }
+            } catch (e) {
+                console.error('生成失败:', e);
+                showToast('网络错误，请检查连接后重试', 'error');
+            } finally {
+                btn.disabled = false;
+                btnText.innerHTML = '<span>🚀</span><span>生成周报</span>';
+            }
+        }
+
+        // ============ 复制和下载 ============
+        function copyToClipboard() {
+            if (!state.currentReport) return;
+            
+            navigator.clipboard.writeText(state.currentReport).then(() => {
+                showToast('已复制到剪贴板', 'success');
+            }).catch(() => {
+                showToast('复制失败，请手动选择复制', 'error');
+            });
+        }
+
+        function downloadMarkdown() {
+            if (!state.currentReport) return;
+            
+            const blob = new Blob([state.currentReport], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `周报_${new Date().toISOString().slice(0, 10)}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Markdown文件已下载', 'success');
+        }
+
+        function downloadText() {
+            if (!state.currentReport) return;
+            
+            // 转换为纯文本
+            let text = state.currentReport
+                .replace(/\*\*/g, '')  // 移除粗体
+                .replace(/\|/g, '  '); // 表格处理
+            
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `周报_${new Date().toISOString().slice(0, 10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('文本文件已下载', 'success');
+        }
+
+        // ============ 升级 ============
+        function showUpgradeModal() {
+            document.getElementById('upgradeModal').classList.add('show');
+        }
+
+        function closeUpgradeModal() {
+            document.getElementById('upgradeModal').classList.remove('show');
+        }
+
+        async function simulatePayment() {
+            try {
+                const response = await fetch('/api/user/payment/simulate', {
+                    method: 'POST',
+                    headers: { 'X-User-ID': state.userId }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    state.isPro = true;
+                    state.remainingFree = -1;
+                    updateQuotaBadge();
+                    closeUpgradeModal();
+                    showToast('恭喜！您已成为Pro会员', 'success');
+                } else {
+                    showToast('升级失败，请重试', 'error');
+                }
+            } catch (e) {
+                showToast('升级失败，请重试', 'error');
+            }
+        }
+
+        // ============ Toast通知 ============
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 点击模态框外部关闭
+        document.getElementById('upgradeModal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                closeUpgradeModal();
+            }
+        });
+    </script>
+</body>
+</html>
